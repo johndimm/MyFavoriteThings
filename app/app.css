@@ -1,0 +1,158 @@
+body {
+  font-family: sans-serif;
+}
+
+#app_title {
+//  font-size: 22pt;
+//  text-align:center;
+//  float:left;
+}
+
+#app_title a {
+  text-decoration: none;
+  color: black
+}
+
+
+#new_review_button {
+//  font-size:22pt;
+  margin: 3px;
+//  margin-left: 20px;
+//  float:left;
+}
+
+#newReviewButton {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  margin: 10px;
+  font-size: 32pt;
+}
+
+
+#title_bar {
+  clear: both;
+  font-size:28pt;
+  padding-left: 100px;
+  margin: 10px;
+  white-space: nowrap;
+}
+
+#button_bar {
+  padding-left: 50px;
+}
+
+#button_bar button {
+  margin: 10px;
+}
+
+button span {
+  font-size:28pt;
+}
+
+#uploaded_file {
+  display: none;
+}
+
+.photo_static, .photo_edit {
+  max-width: 290px;
+  max-height: 145px;
+}
+
+.photo_edit {
+  cursor: pointer;
+}
+
+.textFieldDiv, .textFieldDivEditable {
+  font-size:16pt;
+  height: 20px;
+  margin: 6px;
+  padding: 3px;
+  min-width: 30px;
+}
+
+.textFieldDivEditable {
+  border: 1px solid white;
+  margin: 10px;
+}
+
+.textField {
+  text-decoration: none;
+  color: black;
+  border: none;
+}
+
+
+.review {
+  font-size:18pt;
+  position: relative;
+  float: left;
+  margin: 10px;
+  border: 1px solid black;
+  border-radius: 10px;
+  background-color: lightgray;
+  width: 290px;
+  height: 316px;
+  text-align: center;
+}
+
+::placeholder {
+  color: gray;
+  opacity: 0.7;
+  font-style: italic;
+}
+
+
+.button_holder {
+  padding: 0;
+  height: 40px;
+}
+
+.log_icon, .edit_icon {
+  width: 55px;
+  height: 40px;
+//  border-radius: 55px;
+//  background-color: #FEFEFE;
+  font-size: 12pt;
+}
+
+
+.last_time {
+  width: 150px;
+  text-align: center;
+}
+
+.log_icon, .since_last, .last_time, .delete_icon{
+  float: right;
+}
+
+.edit_icon, .avg_delta {
+  float: left;
+}
+
+.since_last, .avg_delta, .last_time {
+  margin: 3px;
+  font-size:9pt;
+}
+
+.dayColumn {
+  border: 1px solid black;
+  float: left;
+  text-align:center;
+  font-family: sans-serif;
+  margin: 2px;
+}
+
+.dayColumn .review {
+  position: relative;
+  clear:both;
+}
+
+#chron_holder {
+  white-space: nowrap;
+  width: 50000px;
+}
+
+#freshness_holder {
+  width: 1024px;
+}
