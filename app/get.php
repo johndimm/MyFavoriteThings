@@ -8,8 +8,12 @@ function printJSON($db, $sql) {
   // Performing SQL query
   $result = dbGet($db, $sql);
 
-  header('Content-type: application/json');
-  header('Access-Control-Allow-Origin: *');
+  // print ($sql);
+
+  // header('Content-type: application/json');
+  //header('Access-Control-Allow-Origin: *');
+
+
   // echo $result;
   echo json_encode($result);
 }
@@ -20,12 +24,13 @@ function main() {
 
   $sql = '';
 
-  $proc = getParam('proc', '');
+  $proc = getParam('proc', 'get_reviews');
   $param = getParam('param', '');
 
   $sql = "call $proc('$param')";
-  printJSON($db, $sql);
-// echo $sql;
+
+ printJSON($db, $sql);
+//  echo $sql;
 }
 
 main();

@@ -87,6 +87,7 @@ button span {
   font-size:18pt;
   position: relative;
   float: left;
+  // position: absolute;
   margin: 10px;
   border: 1px solid black;
   border-radius: 10px;
@@ -136,10 +137,13 @@ button span {
 }
 
 .dayColumn {
-  border: 1px solid black;
+  // border: 1px solid black;
+  min-height: 620px;
+  min-width: 320px;
   float: left;
   text-align:center;
   font-family: sans-serif;
+  background-color: #EEEEEE;
   margin: 2px;
 }
 
@@ -148,9 +152,19 @@ button span {
   clear:both;
 }
 
+//.dayColumn:hover {
+//  background-color: #BBAA88;
+//}
+
 #chron_holder {
+//  position: absolute;
+//  right: 0;
   white-space: nowrap;
-  width: 50000px;
+//  width: 4000px;
+//  overflow: scroll;
+
+//  scrollLeft: -1000px;
+//  x: -1200px;
 }
 
 #freshness_holder {

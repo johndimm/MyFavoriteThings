@@ -42,7 +42,7 @@ drop procedure if exists get_log;
 delimiter //
 create procedure get_log (_place varchar(255), _item varchar(255))
 begin
-  select date(log.dt_created) as date, log.dt_created as datetime, review.place, review.item, review.photo, review.stars
+  select log.id as log_id, log.review_id, date(log.dt_created) as date, log.dt_created as datetime, review.place, review.item, review.photo, review.stars
   from log
   join review on review.id = log.review_id
   where (_place is null or _place = '' or _place = review.place) and
@@ -142,3 +142,14 @@ create procedure log_review(_review_id int)
 begin
   insert into log (review_id) values (_review_id);
 end //
+delimiter ;
+
+drop procedure if exists set_date;
+delimiter //
+create procedure set_date(_log_id int, _date varchar(64))
+begin
+  update log
+  set dt_created = _date
+  where id = _log_id;
+end //
+delimiter ;

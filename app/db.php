@@ -11,7 +11,7 @@ function dbInit() {
 
   $connection_string = "mysql:host=$mysql_host;dbname=$mysql_database;charset=utf8";
 
-//  print $connection_string;
+ // print $connection_string;
 
   // Connecting, selecting database
   $connection = new PDO(

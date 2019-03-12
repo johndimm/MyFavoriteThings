@@ -300,7 +300,8 @@ class Review extends React.Component {
       editing: false, // this.props.editing,
       deleted: false,
       avg_delta: this.props.avg_delta,
-      since_last: this.props.since_last
+      since_last: this.props.since_last,
+      dragging: false
     };
   }
 
@@ -389,6 +390,11 @@ class Review extends React.Component {
     return message;
   }
 
+  onDragStart(ev, log_id) {
+    console.log('dragstart:', log_id);
+    ev.dataTransfer.setData("log_id", log_id);
+  }
+
   render() {
     var hue = this.props.freshness * 2;
     var saturation = 100 - this.props.freshness;
@@ -403,14 +409,19 @@ class Review extends React.Component {
       { className: "button_holder", style: style },
       buttons
     );
-    var styleHeight = this.props.freshness == null ? { 'height': '270px' } : { 'height': '316px' };
+
+    //   var x = this.state.x;
+    //   var y = this.state.y;
+
+    var styleHeight = this.props.freshness == null ? { 'height': '270px' // , 'left': x + 'px', 'top': y + 'px'}
+    } : { 'height': '316px' }; // , 'left': x + 'px', 'top': y + 'px'};
 
     if (this.state.deleted) {
       return React.createElement("div", null);
     } else {
       return React.createElement(
         "div",
-        { className: "review", style: styleHeight },
+        { className: "review", style: styleHeight, draggable: true, onDragStart: e => this.onDragStart(e, this.props.log_id) },
         React.createElement(
           "button",
           { className: "delete_icon", onClick: this.delete_review.bind(this), title: "delete review" },
@@ -475,6 +486,20 @@ class Chron extends React.Component {
 
   componentDidMount() {
     this.reload();
+    //   $("#chron_holder").scrollLeft(-900);
+  }
+
+  setDate(log_id, date) {
+    $.ajax({
+      url: "get.php",
+      data: { 'proc': "set_date", "param": log_id + "','" + date },
+      dataType: 'text',
+      cache: false,
+      success: function (dataStr) {}.bind(this),
+      error: function (XMLHttpRequest, textStatus, errorThrown) {
+        alert("Status: " + textStatus);alert("Error: " + errorThrown);
+      }
+    });
   }
 
   createNewReview() {
@@ -495,22 +520,77 @@ class Chron extends React.Component {
     });
   }
 
-  render() {
-    var days = [];
-    var allReviews = React.createElement("span", null);
+  onDragOver(ev) {
+    ev.preventDefault();
+  }
 
-    this.state.reviews.sort((a, b) => b.date - a.date).map(function (row, i) {
-      if (row.date != null) {
-        var itsin = row.date in days;
-        if (!(row.date in days)) {
-          days[row.date] = [];
-        }
+  onDrop(ev, day) {
+    let log_id = ev.dataTransfer.getData("log_id");
 
-        days[row.date].push(i);
+    // Set the date of the review in this.state.   It will now move to the new column.
+
+    var revs = this.state.reviews;
+    revs.find(function (key, i) {
+      if (key.log_id == log_id) {
+        key.date = day;
+
+        // Update just the date of the datetime string.
+        key.datetime = day + ' ' + key.datetime.split(' ')[1];
+
+        this.setDate(key.log_id, key.datetime);
+        return day;
       }
     }.bind(this));
 
+    this.setState({ reviews: revs });
+  }
+
+  render() {
+    var days = {};
+    var dataDays = {};
+    var allReviews = React.createElement("span", null);
+
+    //
+    // Define the calendar.
+    //
+    var maxDate = new Date("1900-01-01");
+    var minDate = new Date("3000-01-01");
+    this.state.reviews.sort((a, b) => b.date - a.date).map(function (row, i) {
+      var theDate = new Date(row.date);
+      maxDate = Math.max(maxDate, theDate);
+      minDate = Math.min(minDate, theDate);
+
+      if (!(row.date in dataDays)) {
+        dataDays[row.date] = [];
+      }
+
+      dataDays[row.date].push(i);
+    });
+
+    var theDate = new Date(minDate);
+
+    // Move the start date to the previous Sunday, so the calendar looks good.
+    theDate.setDate(theDate.getDate() - theDate.getDay());
+
+    while (theDate <= maxDate) {
+      var dateString = theDate.toISOString().slice(0, 10);
+
+      days[dateString] = [];
+
+      // Add all reviews for this day
+      if (dateString in dataDays) {
+        dataDays[dateString].forEach(function (key, i) {
+          days[dateString].push(key);
+        });
+      }
+
+      // Next
+      theDate.setDate(theDate.getDate() + 1);
+    }
+
+    //
     // Output a day at a time.
+    //
     var keys = Object.keys(days);
     if (keys.length > 0) {
 
@@ -518,27 +598,60 @@ class Chron extends React.Component {
         var day = days[keys[i]];
 
         // Go through all the reviews from this day.
-        var dayReviews = day.map(function (_row, i) {
-          var row = this.state.reviews[_row];
-          return React.createElement(Review, { key: row.id,
-            review_id: row.id,
-            place: row.place,
-            item: row.item,
-            photo: row.photo,
-            stars: row.stars,
-            avg_delta: row.avg_delta,
-            since_last: row.since_last,
+        var dayReviews = day.map(function (_row, j) {
+          if (_row in this.state.reviews) {
+            var row = this.state.reviews[_row];
+            //          console.log("review key:" + row.review_id);
 
-            last_time: row.last_time,
-            last_day: row.last_day,
-            reload: this.reload.bind(this)
-          });
+            return React.createElement(Review, {
+              key: row.log_id,
+              review_id: row.review_id,
+              place: row.place,
+              item: row.item,
+              photo: row.photo,
+              stars: row.stars,
+              avg_delta: row.avg_delta,
+              since_last: row.since_last,
+              date: row.last_day,
+              last_time: row.last_time,
+              last_day: row.last_day,
+              reload: this.reload.bind(this),
+              log_id: row.log_id
+            });
+          }
         }.bind(this));
+
+        //       console.log("column key:" + i);
+        var date = new Date(keys[i]);
+        var dayOfWeek = date.getDay();
+        var dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        var today = dayNames[dayOfWeek];
+        var month = monthNames[date.getMonth()];
+        var dayOfMonth = date.getDate();
+        var isWeekend = dayOfWeek == 0 || dayOfWeek == 6;
+        var style = {};
+        if (isWeekend) {
+          style = { 'backgroundColor': '#AABBAA' };
+        }
+        if (dayOfWeek == 0) {
+          style.clear = 'both';
+        }
 
         return React.createElement(
           "div",
-          { className: "dayColumn", key: key },
-          keys[i],
+          {
+            className: "dayColumn",
+            key: i,
+            onDrop: e => this.onDrop(e, key),
+            onDragOver: e => this.onDragOver(e),
+            style: style
+          },
+          today,
+          React.createElement("br", null),
+          month,
+          " ",
+          dayOfMonth,
           React.createElement("br", null),
           dayReviews
         );
@@ -617,7 +730,11 @@ class Freshness extends React.Component {
   }
 
   render() {
+    //   var maxWidth = 1200;
+    //   var row = 0;
+
     var reviews = this.state.reviews.sort((a, b) => b.freshness - a.freshness).map(function (row, i) {
+
       return React.createElement(Review, { key: row.id,
         review_id: row.id,
         place: row.place,
@@ -660,7 +777,7 @@ class MyPage extends React.Component {
     this.state = {
       place: this.props.place || '',
       item: this.props.item || '',
-      layout: 'freshness'
+      layout: 'chron'
     };
   }
 

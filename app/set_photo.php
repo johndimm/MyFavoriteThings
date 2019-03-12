@@ -8,8 +8,10 @@ function printJSON($db, $sql) {
   // Performing SQL query
   $result = dbGet($db, $sql);
 
-  header('Content-type: application/json');
-  header('Access-Control-Allow-Origin: *');
+  // header('Content-type: application/json');
+  // header('Access-Control-Allow-Origin: *');
+
+
   // echo dump($result);
   echo json_encode($result);
 }

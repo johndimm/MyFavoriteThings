@@ -1,2 +1,2 @@
-mysql < create.sql
+# mysql < create.sql
 mysql < sp.sql

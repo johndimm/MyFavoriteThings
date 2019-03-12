@@ -20,6 +20,6 @@ create table log
 (
   id int not null auto_increment primary key,
   review_id int not null,
-  dt_created datetime default current_timestamp,
-  foreign key (review_id) references review(id)
+  dt_created datetime default current_timestamp
+# , foreign key (review_id) references review(id)
 )
