@@ -549,14 +549,19 @@ class Chron extends React.Component {
 
     });
 
-    var theDate = new Date( minDate );
+    minDate = new Date( minDate );
+    maxDate = new Date( maxDate );
 
     // Move the start date to the previous Sunday, so the calendar looks good.
-    theDate.setDate(theDate.getDate() - theDate.getDay());
+    minDate.setDate(minDate.getDate() - minDate.getDay());
 
-    while (theDate <= maxDate) {
+    // Move the date to tomorrow to make sure the loop finds today.
+    maxDate.setDate(maxDate.getDate() + 1);
+
+    for (var theDate = minDate;
+         theDate <= maxDate;
+         theDate.setDate(theDate.getDate() + 1) ) {
       var dateString = theDate.toISOString().slice(0,10);
-
 
       days[dateString] = [];
 
@@ -566,9 +571,6 @@ class Chron extends React.Component {
           days[dateString].push(key);
         });
       }
-
-      // Next
-      theDate.setDate(theDate.getDate() + 1);
     }
 
     //
