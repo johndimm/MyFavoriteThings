@@ -1,3 +1,33 @@
+const React = window.React;
+const {DragDropContext, Draggable, Droppable } = window.ReactBeautifulDnd;
+const ReactDOM = window.ReactDOM;
+
+
+const getItemStyle = (draggableStyle, isDragging) => ({
+  // some basic styles to make the items look a bit nicer
+  userSelect: 'none',
+  height: 270,
+
+  // change background colour if dragging
+  background: isDragging ? 'lightgreen' : 'grey',
+
+  // styles we need to apply on draggables
+  ...draggableStyle
+});
+
+const getListStyle = (isDraggingOver) => ({
+  background: isDraggingOver ? 'lightblue' : 'lightgrey',
+  padding: grid,
+  minHeight: 620,
+  minWidth: 320
+ // width: 250,
+ // height: 650,
+});
+
+
+
+
+
 //
 // Display stars below a business name.
 //
@@ -374,10 +404,6 @@ class Review extends React.Component {
     return message;
   }
 
-  onDragStart (ev, log_id) {
-        console.log('dragstart:',log_id);
-        ev.dataTransfer.setData("log_id", log_id);
-  }
 
   render() {
     var hue = this.props.freshness * 2;
@@ -409,7 +435,22 @@ class Review extends React.Component {
       )
     } else {
       return (
-          <div className="review" style={styleHeight} draggable onDragStart={(e) => this.onDragStart(e, this.props.log_id)}>
+          <Draggable
+            draggableId={this.props.index}
+            index={this.props.index}>
+
+          {(provided, snapshot) => (
+
+          <div className="review"
+            style={styleHeight}
+             xstyle={getItemStyle(
+                          provided.draggableProps.style,
+                          snapshot.isDragging
+                        )}
+            ref={provided.innerRef}
+            {...provided.dragHandleProps}
+            {...provided.draggableProps}
+          >
 
               <button className="delete_icon" onClick={this.delete_review.bind(this)} title="delete review">X</button>
 
@@ -424,11 +465,68 @@ class Review extends React.Component {
                 <div className="avg_delta">{this.format_delta(this.props.avg_delta)}</div>
               </div>
           </div>
+          )}
+          </Draggable>
 
       )
     }
   }
 }
+
+const grid = 8;
+
+class Column extends React.Component {
+  render() {
+       var isWeekend = this.props.dayOfWeek == 0 || this.props.dayOfWeek == 6;
+       var style = {};
+       if (isWeekend) {
+         style = {'backgroundColor': '#AABBAA'};
+       }
+       if (this.props.dayOfWeek == 0) {
+         style.clear = 'both';
+       }
+
+       var date = new Date(this.props.dateStr);
+       var dayOfWeek = date.getDay();
+       var dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+       const monthNames = ["January", "February", "March", "April", "May", "June",
+          "July", "August", "September", "October", "November", "December"];
+       var today = dayNames[dayOfWeek];
+       var month = monthNames[date.getMonth()];
+       var dayOfMonth = date.getDate();
+
+    return (
+       <div
+           className="dayColumn"
+           style={style}
+           >
+         {today}
+         <br />
+         {month} {dayOfMonth}
+
+          <Droppable
+            droppableId={this.props.dateStr}>
+
+         {(provided, snapshot) => (
+         <div>
+             <div
+                  style={getListStyle(snapshot.isDraggingOver)}
+                 {...provided.droppableProps}
+                  ref={provided.innerRef}>
+               {this.props.dayReviews}
+             </div>
+             {provided.placeholder}
+         </div>
+         )}
+         </Droppable>
+
+       </div>
+    )
+  }
+}
+
+//           onDrop={(e)=>this.onDrop(e, key)}
+//           onDragOver={(e)=>this.onDragOver(e)}
 
 
 class Chron extends React.Component {
@@ -440,6 +538,8 @@ class Chron extends React.Component {
       place: this.props.place || '',
       item: this.props.item || '',
     };
+
+    this.onDragEnd = this.onDragEnd.bind(this);
   }
 
 
@@ -497,6 +597,27 @@ class Chron extends React.Component {
                     alert("Status: " + textStatus); alert("Error: " + errorThrown);
       }
     });
+
+  }
+
+  onDragStart (result) {
+    console.log('OnDragStart');
+  }
+
+  onDragEnd (result) {
+    if(!result.destination) {
+       console.log("no destination");
+       return;
+    }
+
+    console.log("onDragEnd: " +
+      result.source.index + "_" +
+      result.destination.index);
+
+    // Change the date of this log item.
+    var rev = this.state.reviews;
+    rev[result.draggableId].date = result.destination.droppableId;
+    this.setState({reviews:rev});
 
   }
 
@@ -591,6 +712,7 @@ class Chron extends React.Component {
            return (
                <Review
                     key={row.log_id}
+                    index={_row}
                     review_id={row.review_id}
                     place={row.place}
                     item={row.item}
@@ -608,38 +730,14 @@ class Chron extends React.Component {
          }
        }.bind(this));
 
-//       console.log("column key:" + i);
-       var date = new Date(keys[i]);
-       var dayOfWeek = date.getDay();
-       var dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-       const monthNames = ["January", "February", "March", "April", "May", "June",
-          "July", "August", "September", "October", "November", "December"];
-       var today = dayNames[dayOfWeek];
-       var month = monthNames[date.getMonth()];
-       var dayOfMonth = date.getDate();
-       var isWeekend = dayOfWeek == 0 || dayOfWeek == 6;
-       var style = {};
-       if (isWeekend) {
-         style = {'backgroundColor': '#AABBAA'};
-       }
-       if (dayOfWeek == 0) {
-         style.clear = 'both';
-       }
+       console.log("column key:" + keys[i]);
 
        return (
-         <div
-           className="dayColumn"
-           key={i}
-           onDrop={(e)=>this.onDrop(e, key)}
-           onDragOver={(e)=>this.onDragOver(e)}
-           style={style}
-           >
-         {today}
-         <br />
-         {month} {dayOfMonth}
-         <br />
-         {dayReviews}
-         </div>
+           <Column
+             key={i}
+             dateStr={keys[i]}
+             dayReviews={dayReviews}
+           />
        );
 
       }.bind(this));
@@ -651,9 +749,11 @@ class Chron extends React.Component {
                <span id='new_review_button'>+</span>
             </button>
 
-        <div id="chron_holder">
-          {allReviews}
-        </div>
+        <DragDropContext onDragStart={this.onDragStart} onDragEnd={this.onDragEnd} >
+            <div id="chron_holder">
+              {allReviews}
+            </div>
+        </DragDropContext>
 
       </div>
     )
@@ -723,6 +823,7 @@ class Freshness extends React.Component {
 
       return (
         <Review key={row.id}
+                index={i}
                 review_id={row.id}
                 place={row.place}
                 item={row.item}
